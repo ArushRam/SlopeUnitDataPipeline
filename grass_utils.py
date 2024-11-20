@@ -13,6 +13,7 @@ def generate_flags(flag_list = None, **kwargs):
 def apply_region_mask(mask_name, **kwargs):
     logging.info(f"Applying Mask: {mask_name}")
     flags = generate_flags([], **kwargs)
+    gs.run_command('g.region', vector=mask_name)
     try:
         gs.run_command('r.mask', vector=mask_name, flags=flags)
     except grass.exceptions.CalledModuleError:
@@ -40,10 +41,15 @@ def rasterize_vmap(vector_name, binarize=False, **kwargs):
     else:
         gs.run_command('g.rename', raster=f'temp_raster,{vector_name}_raster', overwrite=True)
 
+def crop_raster(raster_name, mask_name):
+    logging.info(f"Cropping {raster_name}")
+    gs.run_command('g.region', vector=mask_name)
+    gs.run_command('r.mapcalc', expression = f"{mask_name}_{raster_name}= if({raster_name}, {raster_name}, null())", overwrite=True)
+    return f"{mask_name}_{raster_name}"
 
 def import_vector(input_file, map_name, **kwargs):
     logging.info(f"Importing vector {map_name}")
-    flags = generate_flags(['w'], **kwargs)
+    flags = generate_flags(['w', 'o'], **kwargs)
     gs.run_command('v.import',
         input = input_file,
         output = map_name,
@@ -51,23 +57,36 @@ def import_vector(input_file, map_name, **kwargs):
         flags = flags
     )
 
-def export_raster(map_name, output_file, **kwargs):
-    logging.info(f"Exporting raster {map_name} to {output_file}.tif")
+def import_raster(input_file, map_name, **kwargs):
+    logging.info(f"Importing raster {map_name}")
     flags = generate_flags(['o'], **kwargs)
+    gs.run_command('r.import',
+        input = input_file,
+        output = map_name,
+        overwrite = True,
+        resample='bicubic',
+        flags = flags
+    )
+
+def export_raster(map_name, output_file, type='Float32', **kwargs):
+    logging.info(f"Exporting raster {map_name} to {output_file}.tif")
+    flags = "f"
+    if type in ['Byte', 'UInt16']:
+        flags += "c"
     gs.run_command('r.out.gdal',
         input = map_name,
         output = output_file,
         format = 'GTiff',
-        flags = flags,
+        flags = 'f',
         overwrite=True,
+        type=type
     )
 
-def set_subregion_bounds(region_id):
+def set_subregion_bounds(region_id, dem, margin=0):
     apply_region_mask(region_id, verbose=True)
-    gs.run_command('g.region', vector=region_id, flags='p')
+    gs.run_command('g.region', vector=region_id, align=dem, flags='p')
     # maybe extend the region a little bit so that post-processing, slope units have appropriate boundaries
     region = gs.region()
-    margin = 2000
     new_region = {
         'e': region['e'] + margin,
         'w': region['w'] - margin,
