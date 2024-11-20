@@ -41,11 +41,17 @@ def rasterize_vmap(vector_name, binarize=False, **kwargs):
     else:
         gs.run_command('g.rename', raster=f'temp_raster,{vector_name}_raster', overwrite=True)
 
-def crop_raster(raster_name, mask_name):
+def crop_raster(raster_name, mask_name, dem='clipped_wenchuan_dem'):
     logging.info(f"Cropping {raster_name}")
-    gs.run_command('g.region', vector=mask_name)
+    gs.run_command('g.region', vector=mask_name, align=dem)
     gs.run_command('r.mapcalc', expression = f"{mask_name}_{raster_name}= if({raster_name}, {raster_name}, null())", overwrite=True)
     return f"{mask_name}_{raster_name}"
+
+def interpolate_raster(raster_name):
+    logging.info(f"Resampling {raster_name}")
+    out_name = f'{raster_name}_interp'
+    gs.run_command('r.resamp.interp', input=raster_name, output=out_name, method='bicubic', overwrite=True)
+    return out_name
 
 def import_vector(input_file, map_name, **kwargs):
     logging.info(f"Importing vector {map_name}")
@@ -83,19 +89,20 @@ def export_raster(map_name, output_file, type='Float32', **kwargs):
     )
 
 def set_subregion_bounds(region_id, dem, margin=0):
-    apply_region_mask(region_id, verbose=True)
-    gs.run_command('g.region', vector=region_id, align=dem, flags='p')
+    # apply_region_mask(region_id, verbose=True)
+    gs.run_command('g.region', vector=region_id, align=dem)
+    gs.run_command('g.region', flags='p')
     # maybe extend the region a little bit so that post-processing, slope units have appropriate boundaries
-    region = gs.region()
-    new_region = {
-        'e': region['e'] + margin,
-        'w': region['w'] - margin,
-        'n': region['n'] + margin,
-        's': region['s'] - margin,
-        'nsres': region['nsres'],
-        'ewres': region['ewres']
-    }
-    gs.run_command('g.region', n=new_region['n'], s=new_region['s'], e=new_region['e'], w=new_region['w'], res=new_region['nsres'], flags='p')
+    # region = gs.region()
+    # new_region = {
+    #     'e': region['e'] + margin,
+    #     'w': region['w'] - margin,
+    #     'n': region['n'] + margin,
+    #     's': region['s'] - margin,
+    #     'nsres': region['nsres'],
+    #     'ewres': region['ewres']
+    # }
+    # gs.run_command('g.region', n=new_region['n'], s=new_region['s'], e=new_region['e'], w=new_region['w'], res=new_region['nsres'], flags='p')
 
 def run_slopeunits(
         demmap,

@@ -9,9 +9,12 @@ feature_filenames = [
     'aspect', 'curv_mean', 'curv_planform', 'curv_total', 'curv_profile', 'curv_total', 'distance_to_active_fault', 'distance_to_channel', 'elevation', 'MAP', 'nee', 'PGA', 'relief', 'slope'
 ]
 
-def load_tif_numpy(filepath):
+def load_tif_numpy(filepath, crop_edgecols=True):
     with rasterio.open(filepath) as src:
-        return src.read(1)
+        arr = src.read(1)
+    if crop_edgecols:
+        arr = arr[:,1:-1]
+    return arr
 
 def stack_tif_files(base_dir, filename):
     """
@@ -45,8 +48,21 @@ def main():
             continue
         region_data = {}
         region_data['features'], region_data['names'] = stack_tif_files(region_path, feature_filenames)
-        region_data['slopeunits'] = load_tif_numpy(os.path.join(region_path, 'slopeunits_20.tif'))
+        region_data['slopeunits'] = load_tif_numpy(os.path.join(region_path, 'slopeunits.tif'))
         region_data['inventory'] = load_tif_numpy(os.path.join(region_path, 'inventory.tif'))
+
+        with rasterio.open(os.path.join(region_path, 'region.tif')) as src:
+            bounds = src.bounds
+            transform = src.transform
+            resolution = (transform.a, transform.e)
+            crs = src.crs
+
+        region_data['metadata'] = {
+            'bounds': bounds,
+            'resolution': resolution,
+            'crs': crs
+        }
+
         with open(os.path.join(args.output_dir, region) + '.pkl', 'wb') as f:
             pickle.dump(region_data, f)
 

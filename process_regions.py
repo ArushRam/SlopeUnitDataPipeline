@@ -5,7 +5,8 @@ import argparse
 import os
 
 def crop_and_export(raster_name, mask_name, file_path, **kwargs):
-    cropped_name = grass_utils.crop_raster(raster_name, mask_name)
+    interpolated_name = grass_utils.interpolate_raster(raster_name)
+    cropped_name = grass_utils.crop_raster(interpolated_name, mask_name, **kwargs)
     grass_utils.export_raster(cropped_name, output_file=file_path, **kwargs)
 
 def import_derived_features(derived_dir):
@@ -63,18 +64,18 @@ def process_subregion(region_id, region_file, inventory_name, output_directory, 
         demmap = kwargs['dem'],
         slumap = slu_map,
         thresh = 1e6,
-        cvmin = 0.5,
-        areamin = 1e4,
+        cvmin = 0.9,
+        areamin = 5e4,
         areamax = 5e5,
         rf = 10,
-        maxiteration = 20,
+        maxiteration = 50,
         overwrite = True
     )
 
     # 6. rasterize and store slopeunits
     grass_utils.set_subregion_bounds(region_id, kwargs['dem'])
     grass_utils.export_raster(slu_map, 
-        output_file=os.path.join(region_out_dir, 'slopeunits_20.tif'), type='UInt32'
+        output_file=os.path.join(region_out_dir, 'slopeunits.tif'), type='UInt32'
     )
 
 def main():
@@ -91,7 +92,7 @@ def main():
     derived_features_dict = config_manager.get('DERIVED_FEATURES_DICT')
 
     # import_derived_features(derived_features_dict)
-    grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/MAP/nee.tif', 'nee')
+    # grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/MAP/nee.tif', 'nee')
 
     region_list = get_region_files(args.regions_dir)
     for region_id in region_list:
