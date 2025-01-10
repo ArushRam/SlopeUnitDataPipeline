@@ -6,7 +6,7 @@ import argparse
 import pickle
 
 feature_filenames = [
-    'aspect', 'curv_mean', 'curv_planform', 'curv_total', 'curv_profile', 'curv_total', 'distance_to_active_fault', 'distance_to_channel', 'elevation', 'MAP', 'nee', 'PGA', 'relief', 'slope'
+    'aspect', 'curv_mean', 'curv_planform', 'curv_total', 'curv_profile', 'distance_to_active_fault', 'distance_to_channel', 'elevation', 'MAP', 'nee', 'PGA', 'relief', 'slope', 'soil_moisture_day_before', 'silt', 'clay', 'sand'
 ]
 
 def load_tif_numpy(filepath, crop_edgecols=True):

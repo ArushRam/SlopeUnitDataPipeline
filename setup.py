@@ -4,7 +4,7 @@ import logging
 import configparser
 
 class ConfigManager:
-    def __init__(self, config_file = '/Users/arushramteke/Projects/Landslide/slopeunits/config/slopeunits.ini'):
+    def __init__(self, config_file = '/Users/arushramteke/Projects/Landslide/slopeunits_old/config/slopeunits.ini'):
         config = configparser.ConfigParser()
         config.read(config_file)
         self.config = config['DEFAULT']

@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
 import rasterio
 import os
 import argparse
@@ -34,6 +33,8 @@ def process_region_slopeunits(region_file, min_count, out_file):
     feature_names = region['names']
     metadata = region['metadata']
 
+    print(X.shape)
+
     y_slu = map_raster_to_slu(y, slopeunits, reduce_fn=np.mean)
     counts_slu = map_raster_to_slu(np.ones_like(y), slopeunits, reduce_fn=np.sum)
 
@@ -52,6 +53,7 @@ def process_region_slopeunits(region_file, min_count, out_file):
     feats = np.stack(feats)
 
     mask = counts_slu >= min_count
+    kept_su_ids = np.arange(1, len(np.unique(slopeunits)) + 1)[mask]
     feats = feats[:,mask]
     y_slu = y_slu[mask]
     counts_slu = counts_slu[mask]
@@ -61,6 +63,7 @@ def process_region_slopeunits(region_file, min_count, out_file):
         'X': X_slu,
         'y': y_slu,
         'counts': counts_slu,
+        'kept_su_ids': kept_su_ids,
         'slope_units': slopeunits,
         'metadata': metadata,
     }

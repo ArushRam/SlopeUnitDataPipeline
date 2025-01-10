@@ -27,14 +27,14 @@ def process_subregion(region_id, region_file, inventory_name, output_directory, 
     setup_dir(region_out_dir)
 
     # 1. import region boundary into GRASS
-    grass_utils.import_vector(region_file, region_id)
+    # grass_utils.import_vector(region_file, region_id)
 
     # 2. update bounds to sub-region
     grass_utils.set_subregion_bounds(region_id, kwargs['dem'])
 
     # 7. crop and export MAP, PGA, soil data
-    crop_and_export('masked_MAP', region_id, os.path.join(region_out_dir, 'MAP.tif'))
-    crop_and_export('masked_pga', region_id, os.path.join(region_out_dir, 'PGA.tif'))
+    crop_and_export('MAP', region_id, os.path.join(region_out_dir, 'MAP.tif'))
+    crop_and_export('PGA', region_id, os.path.join(region_out_dir, 'PGA.tif'))
     crop_and_export('aspect_map', region_id, os.path.join(region_out_dir, 'aspect.tif'))
     crop_and_export(kwargs['dem'], region_id, os.path.join(region_out_dir, 'elevation.tif'))
     crop_and_export('relief', region_id, os.path.join(region_out_dir, 'relief.tif'))
@@ -47,36 +47,40 @@ def process_subregion(region_id, region_file, inventory_name, output_directory, 
     crop_and_export('curv_total', region_id, os.path.join(region_out_dir, 'curv_total.tif'))
     crop_and_export('distance_to_active_fault', region_id, os.path.join(region_out_dir, 'distance_to_active_fault.tif'))
     crop_and_export('nee', region_id, os.path.join(region_out_dir, 'nee.tif'))
+    crop_and_export('may_11', region_id, os.path.join(region_out_dir, 'soil_moisture_day_before.tif'))
+    crop_and_export('sand', region_id, os.path.join(region_out_dir, 'sand.tif'))
+    crop_and_export('silt', region_id, os.path.join(region_out_dir, 'silt.tif'))
+    crop_and_export('clay', region_id, os.path.join(region_out_dir, 'clay.tif'))
 
-    # 3. rasterize landslide inventory
-    grass_utils.rasterize_vmap(inventory_name, verbose=True, binarize=True)
-    grass_utils.export_raster(f'{inventory_name}_raster', 
-        output_file=os.path.join(region_out_dir, 'inventory.tif'), type='UInt16'
-    )
+    # # 3. rasterize landslide inventory
+    # grass_utils.rasterize_vmap(inventory_name, verbose=True, binarize=True)
+    # grass_utils.export_raster(f'{inventory_name}_raster', 
+    #     output_file=os.path.join(region_out_dir, 'inventory.tif'), type='UInt16'
+    # )
 
-    # 4. rasterize region bounds
-    grass_utils.rasterize_vmap(region_id, verbose=True)
-    grass_utils.export_raster(f'{region_id}_raster', output_file=os.path.join(region_out_dir, 'region.tif'), type='UInt16')
+    # # 4. rasterize region bounds
+    # grass_utils.rasterize_vmap(region_id, verbose=True)
+    # grass_utils.export_raster(f'{region_id}_raster', output_file=os.path.join(region_out_dir, 'region.tif'), type='UInt16')
     
-    # 5. generate slope units
-    slu_map = f'{region_id}_slu'
-    grass_utils.run_slopeunits(
-        demmap = kwargs['dem'],
-        slumap = slu_map,
-        thresh = 1e6,
-        cvmin = 0.9,
-        areamin = 5e4,
-        areamax = 5e5,
-        rf = 10,
-        maxiteration = 50,
-        overwrite = True
-    )
+    # # 5. generate slope units
+    # slu_map = f'{region_id}_slu'
+    # grass_utils.run_slopeunits(
+    #     demmap = kwargs['dem'],
+    #     slumap = slu_map,
+    #     thresh = 1e6,
+    #     cvmin = 0.9,
+    #     areamin = 5e4,
+    #     areamax = 5e5,
+    #     rf = 10,
+    #     maxiteration = 50,
+    #     overwrite = True
+    # )
 
-    # 6. rasterize and store slopeunits
-    grass_utils.set_subregion_bounds(region_id, kwargs['dem'])
-    grass_utils.export_raster(slu_map, 
-        output_file=os.path.join(region_out_dir, 'slopeunits.tif'), type='UInt32'
-    )
+    # # 6. rasterize and store slopeunits
+    # grass_utils.set_subregion_bounds(region_id, kwargs['dem'])
+    # grass_utils.export_raster(slu_map, 
+    #     output_file=os.path.join(region_out_dir, 'slopeunits.tif'), type='UInt32'
+    # )
 
 def main():
     # handle arguments
@@ -93,6 +97,12 @@ def main():
 
     # import_derived_features(derived_features_dict)
     # grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/MAP/nee.tif', 'nee')
+    # grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/soil_mositure/may_11.tif', 'sm_day_before')
+    # grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/MAP/masked_MAP.tif', 'MAP')
+    # grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/PGA/masked_PGA.tif', 'PGA')
+    grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/SoilGrids/processed/sand.tif', 'sand')
+    grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/SoilGrids/processed/silt.tif', 'silt')
+    grass_utils.import_raster('/Users/arushramteke/Desktop/Wenchuan/SoilGrids/processed/clay.tif', 'clay')
 
     region_list = get_region_files(args.regions_dir)
     for region_id in region_list:
