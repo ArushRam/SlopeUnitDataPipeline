@@ -32,6 +32,7 @@ def process_region_slopeunits(region_file, min_count, out_file):
     X = region['features']
     feature_names = region['names']
     metadata = region['metadata']
+    centroids = region['centroids']
 
     print(X.shape)
 
@@ -57,6 +58,7 @@ def process_region_slopeunits(region_file, min_count, out_file):
     feats = feats[:,mask]
     y_slu = y_slu[mask]
     counts_slu = counts_slu[mask]
+    centroids = centroids[mask]
     X_slu = pd.DataFrame(feats, index=new_feat_names).T
 
     data_dict = {
@@ -66,25 +68,25 @@ def process_region_slopeunits(region_file, min_count, out_file):
         'kept_su_ids': kept_su_ids,
         'slope_units': slopeunits,
         'metadata': metadata,
+        'centroids': centroids,
     }
 
     with open(out_file, 'wb') as f:
         pickle.dump(data_dict, f)
 
-def main():
+def process_slopeunits(input_dir, output_dir, min_slu_count=5):
+    for region in os.listdir(input_dir):
+        print('Processing region: ', region.split('.')[0])
+        if region[0] == '.':
+            continue
+        region_file = os.path.join(input_dir, region)
+        output_file = os.path.join(output_dir, region)
+        process_region_slopeunits(region_file, min_slu_count, output_file)
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_dir', type=str, required=True)
     parser.add_argument('--output_dir', type=str, required=True)
     parser.add_argument('--min_slu_count', type=int, default=5)
     args = parser.parse_args()
-
-    for region in os.listdir(args.input_dir):
-        print('Processing region: ', region.split('.')[0])
-        if region[0] == '.':
-            continue
-        region_file = os.path.join(args.input_dir, region)
-        output_file = os.path.join(args.output_dir, region)
-        process_region_slopeunits(region_file, args.min_slu_count, output_file)
-
-if __name__ == "__main__":
-    main()
+    process_slopeunits(args.input_dir, args.output_dir, args.min_slu_count)

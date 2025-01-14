@@ -88,10 +88,11 @@ def export_raster(map_name, output_file, type='Float32', **kwargs):
         type=type
     )
 
-def set_subregion_bounds(region_id, dem, margin=0):
-    # apply_region_mask(region_id, verbose=True)
+def set_subregion_bounds(region_id, dem):
     gs.run_command('g.region', vector=region_id, align=dem)
     gs.run_command('g.region', flags='p')
+
+    # apply_region_mask(region_id, verbose=True)
     # maybe extend the region a little bit so that post-processing, slope units have appropriate boundaries
     # region = gs.region()
     # new_region = {

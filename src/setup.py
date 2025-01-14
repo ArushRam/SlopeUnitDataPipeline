@@ -48,13 +48,6 @@ class ConfigManager:
     def get(self, key):
         return self.config[key]
 
-def setup_dir(dirname):
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-        print(f"Directory '{dirname}' created.")
-    else:
-        print(f"Directory '{dirname}' already exists.")
-
 def get_region_files(region_dir):
     unique_files = set()
     for filename in os.listdir(region_dir):
