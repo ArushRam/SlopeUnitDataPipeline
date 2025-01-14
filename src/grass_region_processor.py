@@ -30,25 +30,6 @@ def subregion_processor(region_id, region_file, output_directory, feature_names,
     for feature in feature_names:
         crop_and_export(feature, region_id, os.path.join(region_out_dir, f'{feature}.tif'))
 
-    # crop_and_export('PGA', region_id, os.path.join(region_out_dir, 'PGA.tif'))
-    # crop_and_export('MAP', region_id, os.path.join(region_out_dir, 'MAP.tif'))
-    # crop_and_export('aspect_map', region_id, os.path.join(region_out_dir, 'aspect.tif'))
-    # crop_and_export('elevation', region_id, os.path.join(region_out_dir, 'elevation.tif'))
-    # crop_and_export('relief', region_id, os.path.join(region_out_dir, 'relief.tif'))
-    # crop_and_export('slope', region_id, os.path.join(region_out_dir, 'slope.tif'))
-    # crop_and_export('discharge', region_id, os.path.join(region_out_dir, 'discharge.tif'))
-    # crop_and_export('distance_to_channel', region_id, os.path.join(region_out_dir, 'distance_to_channel.tif'))
-    # crop_and_export('curv_mean', region_id, os.path.join(region_out_dir, 'curv_mean.tif'))
-    # crop_and_export('curv_planform', region_id, os.path.join(region_out_dir, 'curv_planform.tif'))
-    # crop_and_export('curv_profile', region_id, os.path.join(region_out_dir, 'curv_profile.tif'))
-    # crop_and_export('curv_total', region_id, os.path.join(region_out_dir, 'curv_total.tif'))
-    # crop_and_export('distance_to_active_fault', region_id, os.path.join(region_out_dir, 'distance_to_active_fault.tif'))
-    # crop_and_export('NEE', region_id, os.path.join(region_out_dir, 'nee.tif'))
-    # crop_and_export('sm_day_before', region_id, os.path.join(region_out_dir, 'soil_moisture_day_before.tif'))
-    # crop_and_export('sand', region_id, os.path.join(region_out_dir, 'sand.tif'))
-    # crop_and_export('silt', region_id, os.path.join(region_out_dir, 'silt.tif'))
-    # crop_and_export('clay', region_id, os.path.join(region_out_dir, 'clay.tif'))
-
     # 3. rasterize landslide inventory
     grass_utils.rasterize_vmap('inventory', verbose=True, binarize=True)
     grass_utils.export_raster(f'inventory_raster', 
