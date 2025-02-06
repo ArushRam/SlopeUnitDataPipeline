@@ -47,10 +47,10 @@ def crop_raster(raster_name, mask_name, dem='clipped_wenchuan_dem'):
     gs.run_command('r.mapcalc', expression = f"{mask_name}_{raster_name}= if({raster_name}, {raster_name}, null())", overwrite=True)
     return f"{mask_name}_{raster_name}"
 
-def interpolate_raster(raster_name):
+def interpolate_raster(raster_name, interpolation_method='bicubic'):
     logging.info(f"Resampling {raster_name}")
     out_name = f'{raster_name}_interp'
-    gs.run_command('r.resamp.interp', input=raster_name, output=out_name, method='bicubic', overwrite=True)
+    gs.run_command('r.resamp.interp', input=raster_name, output=out_name, method=interpolation_method, overwrite=True)
     return out_name
 
 def import_vector(input_file, map_name, **kwargs):
@@ -63,14 +63,14 @@ def import_vector(input_file, map_name, **kwargs):
         flags = flags
     )
 
-def import_raster(input_file, map_name, **kwargs):
+def import_raster(input_file, map_name, resample='bicubic', **kwargs):
     logging.info(f"Importing raster {map_name}")
     flags = generate_flags(['o'], **kwargs)
     gs.run_command('r.import',
         input = input_file,
         output = map_name,
         overwrite = True,
-        resample='bicubic',
+        resample=resample,
         flags = flags
     )
 

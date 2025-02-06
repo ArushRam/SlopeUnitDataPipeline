@@ -16,7 +16,7 @@ def load_tif_numpy(filepath, crop_edgecols=False):
         arr = arr[:,1:-1]
     return arr
 
-def stack_tif_files(base_dir, filename):
+def stack_tif_files(base_dir):
     """
     Stack multiple .tif raster files into a single 3D numpy array.
 
@@ -29,12 +29,18 @@ def stack_tif_files(base_dir, filename):
     """
     # Initialize a list to hold the arrays
     arrays = []
-    for filename in feature_filenames:
-        file_path = os.path.join(base_dir, filename) + '.tif'
+    filenames = []
+    for local_path in os.listdir(base_dir):
+        file_path = os.path.join(base_dir, local_path)
+        filename, ext = os.path.splitext(local_path)
+        if ext != '.tif' or filename == 'inventory' or filename == 'slopeunits':
+            continue
+        filenames.append(filename)
         arrays.append(load_tif_numpy(file_path).astype(np.float32))
     # Stack all arrays along a new first dimension
     stacked_array = np.stack(arrays, axis=0)
-    return stacked_array, feature_filenames
+    print(filenames)
+    return stacked_array, filenames
 
 def compute_slopeunit_centroids(raster_path):
     """
@@ -78,7 +84,7 @@ def aggregate_slope_units(base_dir, output_dir):
             continue
         region_data = {}
         region_data['slopeunits'], region_data['centroids'] = compute_slopeunit_centroids(os.path.join(region_path, 'slopeunits.tif'))
-        region_data['features'], region_data['names'] = stack_tif_files(region_path, feature_filenames)
+        region_data['features'], region_data['names'] = stack_tif_files(region_path)
         region_data['inventory'] = load_tif_numpy(os.path.join(region_path, 'inventory.tif'))
 
         with rasterio.open(os.path.join(region_path, 'region.tif')) as src:
