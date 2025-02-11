@@ -27,7 +27,7 @@ def subregion_processor(region_id, region_file, output_directory, continuous_fea
     # 2. update bounds to sub-region
     grass_utils.set_subregion_bounds(region_id, 'elevation')
 
-    # 7. crop and export MAP, PGA, soil data
+    # # 7. crop and export MAP, PGA, soil data
     for feature in continuous_features:
         crop_and_export(feature, region_id, os.path.join(region_out_dir, f'{feature}.tif'), interpolation_method='bicubic')
     for feature in categorical_features:
@@ -35,30 +35,29 @@ def subregion_processor(region_id, region_file, output_directory, continuous_fea
 
     # 3. rasterize landslide inventory
     grass_utils.rasterize_vmap('inventory', verbose=True, binarize=True)
-    grass_utils.export_raster(f'inventory_raster', 
-        output_file=os.path.join(region_out_dir, 'inventory.tif'), type='UInt16'
-    )
+    crop_and_export('inventory_raster', region_id, os.path.join(region_out_dir, f'inventory.tif'), interpolation_method='nearest')
 
     # 4. rasterize region bounds
     grass_utils.rasterize_vmap(region_id, verbose=True)
-    grass_utils.export_raster(f'{region_id}_raster', output_file=os.path.join(region_out_dir, 'region.tif'), type='UInt16')
-    
+    crop_and_export(f'{region_id}_raster', region_id, os.path.join(region_out_dir, f'region.tif'), interpolation_method='nearest')
+
     # 5. generate slope units
+    slu_map_intermediate = f'{region_id}_slu_intermediate'
     slu_map = f'{region_id}_slu'
     grass_utils.run_slopeunits(
-        demmap = 'elevation',
-        slumap = slu_map,
-        thresh = 1e6,
-        cvmin = 0.9,
-        areamin = 5e4,
-        areamax = 5e5,
+        demmap = f'{region_id}_elevation_interp',
+        slumap = slu_map_intermediate,
+        slumapclean = slu_map,
+        thresh = 800000,
+        cvmin = 0.4,
+        areamin = 40000,
         rf = 10,
-        maxiteration = 50,
+        maxiteration = 100,
+        cleansize = 20000,
         overwrite = True
     )
 
     # 6. rasterize and store slopeunits
-    grass_utils.set_subregion_bounds(region_id, 'elevation')
     grass_utils.export_raster(slu_map, 
         output_file=os.path.join(region_out_dir, 'slopeunits.tif'), type='UInt32'
     )
@@ -74,7 +73,7 @@ def process_subregions(data_json_path, regions_dir, output_dir):
 
     # grass_utils.import_raster(dem_path, 'elevation')
     # grass_utils.import_vector(inventory_path, 'inventory')
-    import_all_features(categorical_feature_paths, resample='nearest')
+    # import_all_features(categorical_feature_paths, resample='nearest')
     # import_all_features(feature_paths, resample='bicubic')
     continuous_features = ['elevation'] + list(feature_paths.keys())
     categorical_features = list(categorical_feature_paths.keys())

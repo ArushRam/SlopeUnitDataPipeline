@@ -43,7 +43,7 @@ def rasterize_vmap(vector_name, binarize=False, **kwargs):
 
 def crop_raster(raster_name, mask_name, dem='clipped_wenchuan_dem'):
     logging.info(f"Cropping {raster_name}")
-    gs.run_command('g.region', vector=mask_name, align=dem)
+    # gs.run_command('g.region', vector=mask_name, align=dem)
     gs.run_command('r.mapcalc', expression = f"{mask_name}_{raster_name}= if({raster_name}, {raster_name}, null())", overwrite=True)
     return f"{mask_name}_{raster_name}"
 
@@ -92,7 +92,7 @@ def set_subregion_bounds(region_id, dem):
     gs.run_command('g.region', vector=region_id, align=dem)
     gs.run_command('g.region', flags='p')
 
-    # apply_region_mask(region_id, verbose=True)
+    apply_region_mask(region_id, verbose=True)
     # maybe extend the region a little bit so that post-processing, slope units have appropriate boundaries
     # region = gs.region()
     # new_region = {
@@ -108,12 +108,13 @@ def set_subregion_bounds(region_id, dem):
 def run_slopeunits(
         demmap,
         slumap,
-        thresh = 1000000,
-        cvmin = 0.5,
-        areamin = 10000,
-        areamax = 300000,
+        slumapclean,
+        thresh = 800000,
+        cvmin = 0.4,
+        areamin = 40000,
         rf = 10,
-        maxiteration = 10,
+        maxiteration = 100,
+        cleansize=20000,
         flags = None,
         **kwargs
     ):
@@ -121,9 +122,8 @@ def run_slopeunits(
     Run r.slopeunits on provided arguments.
     '''
     kwargs['overwrite'] = True
-    flags = generate_flags([], **kwargs)
+    flags = generate_flags(['m'], **kwargs)
     gs.run_command('r.slopeunits',
-        demmap = demmap, slumap = slumap, thresh = thresh, cvmin = cvmin, areamin = areamin, areamax = areamax, rf = rf, maxiteration = maxiteration, flags = flags, **kwargs
-    )
+        demmap = demmap, slumap = slumap, thresh = thresh, cvmin = cvmin, areamin = areamin, rf = rf, maxiteration = maxiteration, flags = 'm', cleansize = cleansize, slumapclean = slumapclean, overwrite=True) #  **kwargs
 
 # `r.slopeunits --overwrite demmap=elev30m@PERMANENT slumap=slope_units_6_10k thresh=500000 cvmin=0.6 areamin=10000 areamax=1000000 rf=10 maxiteration=1000`

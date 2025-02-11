@@ -43,6 +43,7 @@ def process_region_slopeunits(region_file, min_count, out_file, categorical_feat
     extreme_features = ['slope', 'curv_mean', 'curv_total', 'curv_profile', 'drainage_area']
     feats, new_feat_names = [], []
     for i, feat in enumerate(feature_names):
+        print("Processing feature: ", feat)
         if feat in categorical_feature_names:
             feat_mode = map_raster_to_slu(X[i], slopeunits, reduce_fn=lambda x: mode(x).mode)
             feats += [feat_mode]
@@ -66,8 +67,8 @@ def process_region_slopeunits(region_file, min_count, out_file, categorical_feat
     counts_slu = counts_slu[mask]
     centroids = centroids[mask]
     X_slu = pd.DataFrame(feats, index=new_feat_names).T
-    for feat in categorical_feature_names:
-        X_slu[feat] = X_slu[feat].astype(int)
+    # for feat in categorical_feature_names:
+    #     X_slu[feat] = X_slu[feat].astype(int)
 
     data_dict = {
         'X': X_slu,

@@ -18,7 +18,7 @@ def main():
     raw_dump_dir = os.path.join(args.output_dir, 'dump_raw')
     setup_dir(raw_dump_dir)
     process_subregions(args.data_json_path, args.region_vector_dir, raw_dump_dir)
-
+    
     aggregated_dump_dir = os.path.join(args.output_dir, 'dump_aggregated')
     setup_dir(aggregated_dump_dir)
     aggregate_slope_units(raw_dump_dir, aggregated_dump_dir)

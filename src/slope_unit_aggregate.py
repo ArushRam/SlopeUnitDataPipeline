@@ -58,9 +58,11 @@ def compute_slopeunit_centroids(raster_path):
         transform = src.transform
         # If needed, check src.crs for the coordinate system
 
+    print(slope_units.shape)
+
     unique_ids = np.unique(slope_units)
     centroids = np.zeros((len(unique_ids), 2), dtype=np.float64)
-    for uid in unique_ids:
+    for i, uid in enumerate(unique_ids):
         if np.any(slope_units == uid) == 0:
             continue
         # Get all pixels belonging to this slope unit
@@ -74,7 +76,7 @@ def compute_slopeunit_centroids(raster_path):
         # You can do this manually or use rasterio's transform machinery:
         # x, y = transform * (col, row)
         x, y = rasterio.transform.xy(transform, mean_row, mean_col, offset='center')
-        centroids[uid-1] = (x, y)
+        centroids[i] = (x, y)
     return slope_units, centroids
 
 def aggregate_slope_units(base_dir, output_dir):
@@ -83,9 +85,10 @@ def aggregate_slope_units(base_dir, output_dir):
         if region[0] == '.' or not os.path.isdir(region_path):  # Check if it's a directory
             continue
         region_data = {}
+
+        region_data['inventory'] = load_tif_numpy(os.path.join(region_path, 'inventory.tif'))
         region_data['slopeunits'], region_data['centroids'] = compute_slopeunit_centroids(os.path.join(region_path, 'slopeunits.tif'))
         region_data['features'], region_data['names'] = stack_tif_files(region_path)
-        region_data['inventory'] = load_tif_numpy(os.path.join(region_path, 'inventory.tif'))
 
         with rasterio.open(os.path.join(region_path, 'region.tif')) as src:
             bounds = src.bounds
